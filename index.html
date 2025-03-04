@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+/*▄───────────────────────────────▄
+  █                               █
+  █  Получение случайных токенов  █
+  █                               █
+  ▀───────────────────────────────▀*/
+class Token {
+/*┌─────────────────────────┐
+  │ Список систем счисления │
+  └─────────────────────────┘*/
+    static list = {
+        '58': '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ',
+        '16': '0123456789abcdef'
+    };
+    
+/*┌────────────────────────────┐
+  │ Возвращает случайное число │
+  └────────────────────────────┘*/
+    static getNumber(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+    
+/*┌───────────────────────────────┐
+  │ Возвращает коллекцию символов │
+  └───────────────────────────────┘*/
+    static getAlphabet(base) {
+    // Проверяем систему счисления (по умолчанию base:58)
+        base = this.list[base] ? base : 58;
+        
+    // Переводим в коллекцию символов
+        if (typeof this.list[base] == 'string') {
+            this.list[base] = new Map([...new Set(this.list[base])].map((v, k) => [k, v]));
+        }
+        
+    // Возвращаем коллекцию символов
+        return this.list[base];
+    }
+    
+/*┌──────────────────────────────────────────────────────────┐
+  │ Возвращает случайную строку в заданной системе счисления │
+  └──────────────────────────────────────────────────────────┘*/
+    static base(base, length) {
+    // Получаем коллекцию символов
+        let alphabet = this.getAlphabet(base);
+        
+    // Возвращаем случайную строку
+        return Array(length).fill().map(() => alphabet.get(
+        // Получаем случайный номер символа
+            this.getNumber(0, alphabet.size - 1)
+        )).join('');
+    }
+}
+
+/*▄─────────────▄
+  █             █
+  █  Интерфейс  █
+  █             █
+  ▀─────────────▀*/
+class View {
+/*┌────────────────────────────────────┐
+  │ Страница полностью готова к работе │
+  └────────────────────────────────────┘*/
+    static ready() {
+    // Добавляем обработчик для клавики "пробел"
+        window.addEventListener('keydown', (e) => {
+            if (e.key == ' ') {
+                e.preventDefault();
+                View.refresh();
+            }
+        });
+        
+    // Получаем шаблон (попутно удаляя его со страницы)
+        let tpl = document.adoptNode(document.getElementById('tpl')).content;
+        
+    // Получаем элементы шаблона
+        let refresh = tpl.firstElementChild;          // Кнопка "Обновить"
+        this.main = tpl.lastElementChild;             // Главный контейнер
+        this.section = this.main.firstElementChild;   // Раздел для списка токенов
+        this.header = this.section.firstElementChild; // Заголовок
+        this.footer = this.section.lastElementChild;  // Токен
+        
+    // Добавляем обработчик для кнопки "Обновить"
+        refresh.addEventListener('mousedown', e => this.refresh(), true);
+        
+    // Добавляем шаблон на страницу
+        document.body.appendChild(tpl);
+        
+    // Обновляем содержимое страницы
+        this.refresh();
+    }
+    
+/*┌───────────────────────────────┐
+  │ Обновляет содержимое страницы │
+  └───────────────────────────────┘*/
+    static refresh() {
+    // Очищаем главный контейнер
+        this.main.innerHTML = '';
+        
+    // Добавляем отступ (для статического размера высоты страницы)
+        this.main.classList.add('empty');
+        
+    // Проходим по спискам токенов
+        this.lists().forEach(items => {
+        // Создаем новый раздел
+            let section = this.section.cloneNode();
+            
+        // Добавляем раздел в главный контейнер
+            this.main.appendChild(section);
+            
+        // Проходим по списку токенов
+            items.forEach(item => {
+            // Создаем элемент для заголовка
+                let header = this.header.cloneNode();
+                header.textContent = item[1];
+                
+            // Создаем элемент для токена
+                let footer = this.footer.cloneNode();
+                footer.textContent = item[0];
+                
+            // Добавляем элементы в раздел
+                section.appendChild(header);
+                section.appendChild(footer);
+                
+            // Добавляем обработчик
+                footer.addEventListener('mousedown', e => {
+                // Удаляем выделение у всех токенов
+                    document.querySelectorAll('footer').forEach(
+                        el => el.classList.remove('select')
+                    );
+                    
+                // Выделяем выбранный токен
+                    footer.classList.add('select');
+                    
+                // Удаляем отступ (для статического размера высоты страницы)
+                    this.main.classList.remove('empty');
+                    
+                // Копируем текущий токен в буфер обмена
+                    navigator.clipboard.writeText(item[0]);
+                }, true);
+            })
+        });
+    }
+    
+/*┌───────────────────────────┐
+  │ Возвращает списки токенов │
+  └───────────────────────────┘*/
+    static lists() {
+        return [
+        // Список токенов "Base:58"
+            [
+                [Token.base(58, 22), 'Base:58 length:22 (~128 bit)'],
+                [Token.base(58, 33), 'Base:58 length:33 (~192 bit)'],
+                [Token.base(58, 44), 'Base:58 length:44 (~256 bit)']
+            ],
+            
+        // Список токенов "Base:16"
+            [
+                [Token.base(16, 64), 'Base:16 length:64 (256 bit)'],
+                [Token.base(16, 48), 'Base:16 length:48 (192 bit)'],
+                [Token.base(16, 32), 'Base:16 length:32 (128 bit)'],
+                [Token.base(16, 16), 'Base:16 length:16  (64 bit)'],
+                [Token.base(16,  8), 'Base:16 length:8   (32 bit)']
+            ]
+        ];
+    }
+}
+
+/*▄──────────────────────────────────────▄
+  █                                      █
+  █  Страница полностью готова к работе  █
+  █                                      █
+  ▀──────────────────────────────────────▀*/
+window.addEventListener('load', e => View.ready());
+</script>
+<style>
+*, *::before, *::after {margin:0; padding:0; box-sizing:border-box}
+html {height:100%}
+body {
+    min-height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-flow:column;
+    font-size:1.15rem;
+    font-family:monospace;
+    color:#182433;
+    background:#FFF;
+    word-break:break-all
+}
+nav {
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+    display:block;
+    margin-top:30px;
+    padding:15px;
+    border-radius:5px;
+    font-family:sans-serif;
+    background:#CCC;
+    cursor:pointer
+}
+main {margin:0 0 30px; max-width:500px}
+section {margin-top:80px}
+section:first-child {margin-top:0}
+header {display:block; margin-top:30px; font-weight:bold}
+footer {display:inline-block}
+footer:hover {text-decoration:underline; cursor:pointer}
+.select, .select:hover {text-decoration:none; cursor:auto; color:red}
+.select::after, .empty::after {
+    content:'Токен скопирован!';
+    display:table;
+    margin-top:5px;
+    padding:10px;
+    font-size:1rem;
+    color:#FFF;
+    border-radius:5px;
+    background:green
+}
+.empty::after {opacity:0}
+</style>
+</head>
+<body>
+    <template id="tpl">
+        <nav>Обновить</nav>
+        <main class="empty">
+            <section>
+                <header></header>
+                <footer></footer>
+            </section>
+        </main>
+    </template>
+</body>
+</html>
