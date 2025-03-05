@@ -1,4 +1,5 @@
 {
+    "private": true,
     "bin": "./http-server",
     "dependencies": {
         "chokidar": "4.0.3"
