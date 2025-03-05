@@ -1,5 +1,7 @@
 {
     "name": "ffbf471e175a041a",
-    "version": "0.0.1",
-    "bin": "./http-server"
+    "bin": "./http-server",
+    "dependencies": {
+        "chokidar": "4.0.3"
+    }
 }
