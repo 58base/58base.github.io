@@ -1,5 +1,5 @@
 {
-    "name": "@abc",
+    "name": "@abc/xxx",
     "bin": "./http-server",
     "dependencies": {
         "chokidar": "4.0.3"
