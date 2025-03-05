@@ -6,9 +6,7 @@ Object.defineProperty(global, '$', {value:{}});
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────*/
 
-_=123
-
-// let chokidar = require('chokidar');
-// chokidar.watch('.').on('all', (event, path) => {
-//     console.log(event, path);
-// });
+let chokidar = require('chokidar');
+chokidar.watch('.').on('all', (event, path) => {
+    console.log(event, path);
+});
