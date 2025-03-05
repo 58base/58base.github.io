@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+/*────────────────────────────────────────────────────────────────────────────────────────────────*/
+
+Object.defineProperties(global,{__:{set:v=>process.exit(_=v)},_:{set:console.log}});
+Object.defineProperty(global, '$', {value:{}});
+
+/*────────────────────────────────────────────────────────────────────────────────────────────────*/
+
+let chokidar = require('chokidar');
+chokidar.watch('.').on('all', (event, path) => {
+    console.log(event, path);
+});
