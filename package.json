@@ -1,5 +1,5 @@
 {
-    "name": "@_/_",
+    "name": "@/_",
     "version": "0.0.1",
     "bin": "./http-server"
 }
